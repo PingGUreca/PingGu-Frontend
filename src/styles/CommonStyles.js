@@ -85,3 +85,23 @@ export const Select = styled.select`
   border-radius: 4px;
   font-size: 16px;
 `;
+
+// 큰 레이아웃이라 마이페이지에서 공통으로 옮김
+export const PageContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: 100vh;
+`;
+
+export const PageTitle = styled.h1`
+  font-size: 24px;
+  margin-bottom: 20px;
+`;
+
+export const ContentContainer = styled.div`
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+`;
