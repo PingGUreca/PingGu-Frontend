@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Ensure useEffect is imported
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import {
@@ -70,6 +71,7 @@ const PostContent = () => {
     location: '',
   });
   const [showModal, setShowModal] = useState(false);
+  const navigate = useNavigate(); // navigate 추가
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -93,16 +95,22 @@ const PostContent = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:8080/recruit', {
-        method: 'POST',
+      const res = await axios.post('http://localhost:8080/recruit', requestPayload, {
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestPayload),
       });
 
-      if (!res.ok) throw new Error('서버 오류');
-      alert('작성 완료되었습니다!');
+      // Check if Location header is returned from the server
+      const locationUri = res.headers.location; // axios returns headers automatically
+      console.log('Location URI:', locationUri);
+
+      if (locationUri) {
+        navigate(locationUri); // Use navigate with the Location header URI
+      } else {
+        alert('작성 완료되었습니다!');
+        navigate('/mypage'); // Fallback navigation
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Error submitting post:', err);
       alert('제출 중 오류가 발생했습니다.');
     }
   };
@@ -123,8 +131,7 @@ const PostContent = () => {
       )}
 
       <FormWrapper>
-
-      <FormGroup>
+        <FormGroup>
           <Label>탁구장 위치</Label>
           <SearchWrapper>
             <Input type="text" name="location" value={postData.location} readOnly />
