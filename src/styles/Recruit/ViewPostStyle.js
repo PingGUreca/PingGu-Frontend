@@ -1,6 +1,28 @@
 import styled from 'styled-components';
 import { Button } from '../CommonStyles';
 
+export const ActionButtonContainer = styled.div`
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  gap: 8px;
+`;
+
+// 작은 버튼 스타일
+export const SmallButton = styled.button`
+  padding: 4px 10px;
+  font-size: 12px;
+  background-color: #eee;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+  &:hover {
+    background-color: #ddd;
+  }
+`;
+
+
 // 신청 버튼을 위한 스타일
 export const ButtonContainer = styled.div`
   display: flex;
