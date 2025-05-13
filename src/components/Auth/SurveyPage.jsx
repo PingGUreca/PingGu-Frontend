@@ -75,7 +75,6 @@ const SurveyPage = () => {
           <ButtonGroup>
             <SelectButton active={handedness === 'R'} onClick={() => setHandedness('R')}>오른손잡이</SelectButton>
             <SelectButton active={handedness === 'L'} onClick={() => setHandedness('L')}>왼손잡이</SelectButton>
-            <SelectButton active={handedness === 'BOTH'} onClick={() => setHandedness('BOTH')}>양손 모두 가능</SelectButton>
           </ButtonGroup>
         </FormGroup>
 
