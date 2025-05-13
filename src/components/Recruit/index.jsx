@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
-
-import PostContent from './PostContent.jsx'; // 글 작성 화면 컴포넌트
 
 import { 
   PageContainer, 
@@ -10,54 +8,88 @@ import {
   ContentContainer 
 } from '../../styles/CommonStyles.js';
 
-const WritePost = () => {
-  const navigate = useNavigate();
-  const [postData, setPostData] = useState({
-    title: '',
-    content: '',
-    category: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+import {
+  SubmitButton,
+  ModalBackdrop,
+  ModalBox,
+  ModalTitle,
+  ModalButton
+} from '../../styles/Recruit/RecruitFormStyle.js'; // 스타일이 정의된 파일 경로에 맞게 수정해 주세요
 
-  // 글 작성 데이터 전송 함수
-  const submitPost = async () => {
-    setLoading(true);
-    try {
-      await axios.post('http://localhost:8080/posts', postData);
-      alert('글이 작성되었습니다.');
-      navigate('/mypage');
-    } catch (err) {
-      setError('글 작성에 실패했습니다.');
-      console.error('Error submitting post:', err);
-    } finally {
-      setLoading(false);
-    }
+const ViewPost = () => {
+  const [post, setPost] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열기 상태
+  const [chatUrl, setChatUrl] = useState(""); // 채팅 URL 저장
+  const { recruitId } = useParams(); // URL에서 recruitId를 추출
+
+  useEffect(() => {
+    // 모집 글 정보를 가져오는 API 호출
+    const fetchPost = async () => {
+      try {
+        const response = await axios.get(`http://localhost:8080/recruit/${recruitId}`);
+        setPost(response.data); // 응답 데이터를 상태에 저장
+      } catch (error) {
+        console.error("Error fetching post:", error);
+      }
+    };
+
+    fetchPost();
+  }, [recruitId]);
+
+  const handleApplyClick = () => {
+    // 신청 버튼 클릭 시 모달을 열고, 채팅 URL 설정
+    setChatUrl(post.chatUrl);
+    setIsModalOpen(true);
   };
 
-  // 로딩 상태 표시
-  if (loading) {
-    return <PageContainer>로딩 중...</PageContainer>;
-  }
+  const handleCloseModal = () => {
+    // 모달 닫기
+    setIsModalOpen(false);
+  };
 
-  // 에러 상태 표시
-  if (error) {
-    return <PageContainer>에러: {error}</PageContainer>;
+  if (!post) {
+    return <div>Loading...</div>; // 데이터를 로딩 중일 때 표시할 내용
   }
 
   return (
     <PageContainer>
-      <PageTitle>모집 글 작성</PageTitle>
+      <PageTitle>모집 상세보기</PageTitle> {/* 글 제목 */}
+      
+      {/* 모집 상태에 따라 버튼을 다르게 표시 */}
+      <div>
+        {post.status ? (
+          <SubmitButton disabled>마감</SubmitButton> // 상태가 true일 경우 마감 버튼 비활성화
+        ) : (
+          <SubmitButton onClick={handleApplyClick}>신청</SubmitButton> // 상태가 false일 경우 신청 버튼 활성화
+        )}
+      </div>
 
       <ContentContainer>
-        <PostContent 
-          postData={postData} 
-          setPostData={setPostData}
-          onSubmit={submitPost}
-        />
+        <p><strong>제목:</strong> {post.title}</p> {/* 글 제목 */}
+        <p><strong>작성자:</strong> {post.userName}</p> {/* 작성자 이름 */}
+        <p><strong>장소:</strong> {post.clubName} ({post.location})</p> {/* 탁구장 이름과 위치 */}
+        <p><strong>날짜:</strong> {post.date}</p> {/* 날짜 */}
+        <p><strong>성별:</strong> {post.gender === 'M' ? '남성' : '여성'}</p> {/* 성별 */}
+        <p><strong>레벨:</strong> {post.level}</p> {/* 레벨 */}
+        <p><strong>라켓:</strong> {post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'}</p> {/* 라켓 종류 */}
+        <p><strong>모집 인원:</strong> {post.capacity}명</p> {/* 모집 인원 */}
+        <p><strong>상세 내용:</strong> {post.document}</p> {/* 상세 내용 */}
       </ContentContainer>
+
+      {/* 모달이 열려있을 때 채팅 URL을 보여주는 모달 */}
+      {isModalOpen && (
+        <ModalBackdrop>
+          <ModalBox>
+            <ModalTitle>신청이 완료되었습니다!</ModalTitle>
+            <p>아래의 링크에서 채팅을 시작하세요:</p>
+            <a href={chatUrl} target="_blank" rel="noopener noreferrer">채팅 시작</a>
+            <br /> {/* 줄바꿈 추가 */}
+            <ModalButton onClick={handleCloseModal}>닫기</ModalButton>
+          </ModalBox>
+        </ModalBackdrop>
+      )}
     </PageContainer>
   );
 };
 
-export default WritePost;
+export default ViewPost;

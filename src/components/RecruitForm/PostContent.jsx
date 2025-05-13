@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // Ensure useEffect is imported
+// import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import {
@@ -56,55 +57,18 @@ const LocationModal = ({ onClose, onSelectClub }) => {
   );
 };
 
-const PostContent = () => {
-  const [postData, setPostData] = useState({
-    title: '',
-    content: '',
-    date: '',
-    limit: '',
-    gender: '',
-    level: '',
-    racket: '',
-    chatUrl: '',
-    clubId: null,
-    location: '',
-  });
+const PostContent = ({ postData, setPostData, onSubmit }) => {
   const [showModal, setShowModal] = useState(false);
+  // const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setPostData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
-    const requestPayload = {
-      clubId: postData.clubId,
-      date: postData.date,
-      capacity: parseInt(postData.limit),
-      gender:
-        postData.gender === 'MALE' ? 'M' :
-        postData.gender === 'FEMALE' ? 'F' :
-        'All',
-      level: postData.level,
-      racket: postData.racket,
-      title: postData.title,
-      document: postData.content,
-      chatUrl: postData.chatUrl,
-    };
-
-    try {
-      const res = await fetch('http://localhost:8080/recruit', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestPayload),
-      });
-
-      if (!res.ok) throw new Error('서버 오류');
-      alert('작성 완료되었습니다!');
-    } catch (err) {
-      console.error(err);
-      alert('제출 중 오류가 발생했습니다.');
-    }
+  const handleSubmitClick = (e) => {
+    e.preventDefault();
+    onSubmit(); // 외부에서 넘어온 submit 함수 호출
   };
 
   return (
@@ -123,8 +87,7 @@ const PostContent = () => {
       )}
 
       <FormWrapper>
-
-      <FormGroup>
+        <FormGroup>
           <Label>탁구장 위치</Label>
           <SearchWrapper>
             <Input type="text" name="location" value={postData.location} readOnly />
@@ -186,7 +149,7 @@ const PostContent = () => {
           <Input type="url" name="chatUrl" value={postData.chatUrl} onChange={handleInputChange} required />
         </FormGroup>
 
-        <SubmitButton type="submit" onClick={(e) => { e.preventDefault(); handleSubmit(); }}>
+        <SubmitButton type="submit" onClick={handleSubmitClick}>
           작성 완료
         </SubmitButton>
       </FormWrapper>
