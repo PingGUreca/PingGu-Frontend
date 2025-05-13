@@ -34,7 +34,7 @@ const MenuGroup = styled.div`
 
 // 본문 콘텐츠 Wrapper
 const ContentWrapper = styled.div`
-  max-width: 900px;
+  max-width: 1000px;
   margin: 2rem auto;
   padding: 0 1rem;
   font-size: 0.95rem;

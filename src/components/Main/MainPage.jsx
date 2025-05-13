@@ -61,11 +61,13 @@ const MainPage = () => {
     });
   };
 
-  const fetchRecruits = useCallback(async (reset = false) => {
-    try {
-      if (!hasMore && !reset) return;
-      setLoading(true);
+  const isFetchingRef = useRef(false);
 
+  const fetchRecruits = useCallback(async (reset = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    try {
+      setLoading(true);
       const params = {
         date: format(selectedDate, 'yyyy-MM-dd'),
         gu: district || undefined,
@@ -74,11 +76,11 @@ const MainPage = () => {
         page: reset ? 0 : page,
         size: 5
       };
-
+  
       const response = await axios.get('/recruit', { params });
       const fetched = response.data.content;
       const isLast = response.data.last;
-
+  
       if (reset) {
         setRecruits(fetched);
         setPage(1);
@@ -92,6 +94,7 @@ const MainPage = () => {
       console.error('모집글 조회 실패:', error);
     } finally {
       setLoading(false);
+      isFetchingRef.current = false;
     }
   }, [selectedDate, district, level, gender, page, hasMore]);
 
