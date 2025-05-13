@@ -31,7 +31,7 @@ const MyPage = () => {
   
   // 임시 memberId (실제로는 JWT에서 추출하거나 로그인 상태에서 가져옴)
   // TODO: JWT 구현 이후 변경 예정
-  const memberId = 1;  // 예시 ID 값
+  const memberId = 100;  // 예시 ID 값
 
   // 프로필 데이터 새로고침 함수
   const refreshProfileData = async () => {
