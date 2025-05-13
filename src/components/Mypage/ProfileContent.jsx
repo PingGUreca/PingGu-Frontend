@@ -43,6 +43,7 @@ const getGenderText = (gender) => {
   switch(gender) {
     case 'M': return '남성';
     case 'F': return '여성';
+    case 'ALL': return '상관없음';
     default: return gender;
   }
 };
@@ -162,6 +163,7 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
             >
               <option value="M">남성</option>
               <option value="F">여성</option>
+              <option value="ALL">상관없음</option>
             </Select>
           </FormGroup>
 
