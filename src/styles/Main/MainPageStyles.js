@@ -193,24 +193,29 @@ export const CustomDateWrapper = styled.div`
 
 
 export const CustomDateButton = styled.button`
-  background-color: ${({ active, weekend }) =>
-    active ? '#00328F' : weekend ? '#bbb' : '#eee'};
-  color: ${({ active }) => (active ? '#fff' : '#000')};
+  background-color: ${({ active }) =>
+    active ? '#00328F' : '#eee'}; // ✅ 주말 여부는 배경색에서 제거
+  color: ${({ active, weekend }) =>
+    active ? '#fff' : weekend ? '#d32f2f' : '#000'}; // ✅ 주말이면 빨간 글씨
   border: none;
   padding: 8px 12px;
   border-radius: 6px;
   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
   font-weight: 500;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease, transform 0.2s ease;
   text-align: center;
   min-width: 110px;
   opacity: ${({ disabled }) => (disabled ? 0.4 : 1)};
   pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
+
   &:hover {
-    background-color: ${({ active, weekend, disabled }) =>
-      disabled ? null : active ? '#e55a00' : weekend ? '#999' : '#ddd'};
+    transform: ${({ disabled }) => (disabled ? 'none' : 'translateY(-3px)')};
+    background-color: ${({ active, disabled }) =>
+      disabled ? null : active ? '#00246e' : '#ddd'}; // ✅ 주말 조건 제거
   }
 `;
+
+
 
 export const DateDayText = styled.div`
   font-size: 14px;
@@ -227,12 +232,21 @@ export const ArrowButton = styled.button`
 `;
 
 export const StatusTag = styled.span`
-  font-size: 12px;
-  color: white;
-  background-color: red;
-  padding: 2px 6px;
-  border-radius: 6px;
+  display: inline-block;
   margin-left: 8px;
+
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+
+  color: white;
+  background: linear-gradient(135deg, #f44336, #d32f2f); // 밝은 빨강 → 진한 빨강
+  border-radius: 999px;
+
+  box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3); // 약간의 그림자
+  transition: all 0.2s ease;
+
+  user-select: none;
 `;
 
 export const MatchTitle = styled.div`
@@ -250,10 +264,31 @@ export const MatchItemStyled = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f2f2f2;
-  border-radius: 8px;
-  padding: 16px 24px;
-  margin-bottom: 12px;
+
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+
+  padding: 18px 24px;
+  margin-bottom: 14px;
+
   font-size: 16px;
   font-weight: 500;
+
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
+
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    background-color: #f9f9f9;
+  }
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 `;

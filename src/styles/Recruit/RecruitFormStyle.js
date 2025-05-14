@@ -7,7 +7,7 @@ export const FormWrapper = styled.div`
   background: #fff;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0,0,0,0);
 `;
 
 export const FormTitle = styled.h2`
@@ -71,7 +71,7 @@ export const SearchWrapper = styled.div`
 export const SearchButton = styled(Button)`
   height: 42px;
   padding: 0 16px;
-  background-color: #3498db;
+  background-color: #00328F;
   color: white;
   font-weight: 500;
 `;
@@ -84,6 +84,18 @@ export const SubmitButton = styled(Button)`
   width: 100%;
   font-size: 16px;
   margin-top: 10px;
+   cursor: ${({ disabled }) => (disabled ? 'not-allowed' : 'pointer')};
+  transition: all 0.3s ease-in-out;
+
+  background-color: ${({ status }) =>
+    status === 'FULL' ? '#ff4d4f' : status === 'OPEN' ? '#00328F' : '#dcdcdc'};
+
+  color: white;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: ${({ disabled }) => (disabled ? 'none' : '0 8px 12px rgba(0, 0, 0, 0.1)')};
+  }
 `;
 
 export const ModalBackdrop = styled.div`

@@ -71,6 +71,17 @@ const PostContent = ({ postData, setPostData, onSubmit }) => {
     onSubmit(); // 외부에서 넘어온 submit 함수 호출
   };
 
+  const isFormValid =
+  postData.location &&
+  postData.date &&
+  postData.limit &&
+  postData.gender &&
+  postData.level &&
+  postData.racket &&
+  postData.title &&
+  postData.content &&
+  postData.chatUrl;
+
   return (
     <>
       {showModal && (
@@ -149,7 +160,12 @@ const PostContent = ({ postData, setPostData, onSubmit }) => {
           <Input type="url" name="chatUrl" value={postData.chatUrl} onChange={handleInputChange} required />
         </FormGroup>
 
-        <SubmitButton type="submit" onClick={handleSubmitClick}>
+        <SubmitButton
+          type="submit"
+          onClick={handleSubmitClick}
+          status={isFormValid ? 'OPEN' : 'DISABLED'}
+          disabled={!isFormValid}
+        >
           작성 완료
         </SubmitButton>
       </FormWrapper>

@@ -2,11 +2,10 @@ import styled from 'styled-components';
 import { Button } from '../CommonStyles';
 
 export const ActionButtonContainer = styled.div`
-  position: absolute;
-  top: 20px;
-  right: 20px;
   display: flex;
+  justify-content: center;
   gap: 8px;
+  margin-top: 24px;
 `;
 
 // 작은 버튼 스타일
