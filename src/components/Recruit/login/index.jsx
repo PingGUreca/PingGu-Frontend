@@ -32,6 +32,7 @@ const ViewPostLogin = () => {
     const fetchPost = async () => {
       try {
         const response = await axios.get(`http://localhost:8080/recruit/${recruitId}`);
+        console.log('📦 post 데이터:', response.data); // ✅ 추가
         setPost(response.data);
       } catch (error) {
         console.error("Error fetching post:", error);
@@ -80,19 +81,13 @@ const ViewPostLogin = () => {
       <PageTitle>모집 상세보기</PageTitle>
 
       <div>
-        {post.status ? (
+        {post.status === 'FULL' ? (
           <SubmitButton disabled>마감</SubmitButton>
-        ) : (
+        ) : post.status === 'OPEN' ? (
           <SubmitButton onClick={handleApplyClick}>신청</SubmitButton>
+        ) : (
+          <SubmitButton disabled>신청 불가</SubmitButton> // 나머지 상태들 처리 (EXPIRED, CLOSED 등)
         )}
-      </div>
-
-      {/* ✅ 수정 / 삭제 버튼 항상 보이게 */}
-      <div style={{ marginTop: "1rem" }}>
-        <ActionButtonContainer>
-          <SmallButton onClick={handleEdit}>수정</SmallButton>
-          <SmallButton onClick={handleDelete}>삭제</SmallButton>
-        </ActionButtonContainer>
       </div>
 
       <ContentContainer>
@@ -106,6 +101,14 @@ const ViewPostLogin = () => {
         <p><strong>모집 인원:</strong> {post.capacity}명</p>
         <p><strong>상세 내용:</strong> {post.document}</p>
       </ContentContainer>
+
+      {/* ✅ 수정 / 삭제 버튼 항상 보이게 */}
+      <div style={{ marginTop: "1rem",textAlign: "center"  }}>
+        <ActionButtonContainer>
+          <SmallButton onClick={handleEdit}>수정</SmallButton>
+          <SmallButton onClick={handleDelete}>삭제</SmallButton>
+        </ActionButtonContainer>
+      </div>
 
       {isModalOpen && (
         <ModalBackdrop>

@@ -56,13 +56,13 @@ const ViewPost = () => {
       <PageTitle>모집 상세보기</PageTitle> {/* 글 제목 */}
       
       {/* 모집 상태에 따라 버튼을 다르게 표시 */}
-      <div>
-        {post.status ? (
-          <SubmitButton disabled>마감</SubmitButton> // 상태가 true일 경우 마감 버튼 비활성화
-        ) : (
-          <SubmitButton onClick={handleApplyClick}>신청</SubmitButton> // 상태가 false일 경우 신청 버튼 활성화
-        )}
-      </div>
+      {post.status === 'FULL' ? (
+        <SubmitButton status="FULL" disabled>마감</SubmitButton>
+      ) : post.status === 'OPEN' ? (
+        <SubmitButton status="OPEN" onClick={handleApplyClick}>신청</SubmitButton>
+      ) : (
+        <SubmitButton status={post.status} disabled>신청 불가</SubmitButton>
+      )}
 
       <ContentContainer>
         <p><strong>제목:</strong> {post.title}</p> {/* 글 제목 */}
