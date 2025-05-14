@@ -13,6 +13,7 @@ import banner2 from '../../images/banner2.png';
 import banner3 from '../../images/banner3.png';
 import banner4 from '../../images/banner4.png';
 import { format, isBefore, isSameDay } from 'date-fns';
+import { useNavigate } from 'react-router-dom'; // 추가
 
 const seoulDistricts = [
   '강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구',
@@ -120,6 +121,8 @@ const MainPage = () => {
     return () => observer.disconnect();
   }, [loader, fetchRecruits, loading, hasMore]);
 
+  const navigate = useNavigate(); // 추가
+
 
   return (
     <PageContainer>
@@ -192,7 +195,11 @@ const MainPage = () => {
         {recruits.map((match, idx) => {
           const isClosed = match.current >= match.capacity;
           return (
-            <MatchItemStyled key={idx}>
+            <MatchItemStyled 
+              key={idx}
+              onClick={() => navigate(`/recruit/${match.recruitId}`)} // ✅ 상세 페이지 이동
+              style={{ cursor: 'pointer' }} // 클릭 가능 표시
+              >
               <MatchTitle>{match.title}</MatchTitle>
               <MatchStatus>
                 {`인원 : ${match.current}/${match.capacity}`}
