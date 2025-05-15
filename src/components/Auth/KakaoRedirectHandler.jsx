@@ -30,6 +30,7 @@ const KakaoRedirectHandler = () => {
                 const { memberId, register } = response.data;
 
                 const accessToken = response.headers['authorization']?.split(' ')[1];
+                
                 if (accessToken) {
                     localStorage.setItem('access_token', accessToken); // ✅ access_token 저장
                 }

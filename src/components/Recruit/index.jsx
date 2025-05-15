@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 import { 
@@ -24,49 +24,93 @@ import {
   DetailCard,
   FixedButtonContainer
 } from '../../styles/Recruit/RecruitFormStyle.js';
-import {SectionTitle} from "../../styles/Auth/SurveyStyles";
+
+import {
+  ActionButtonContainer
+} from '../../styles/Recruit/ViewPostStyle.js';
+
+import { SectionTitle } from "../../styles/Auth/SurveyStyles";
 
 const ViewPost = () => {
   const [post, setPost] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // 모달 열기 상태
-  const [chatUrl, setChatUrl] = useState(""); // 채팅 URL 저장
-  const { recruitId } = useParams(); // URL에서 recruitId를 추출
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [chatUrl, setChatUrl] = useState("");
+  const [showButtons, setShowButtons] = useState(false); // 버튼 표시 여부
+  const { recruitId } = useParams();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // 모집 글 정보를 가져오는 API 호출
     const fetchPost = async () => {
       try {
         const response = await axios.get(`http://localhost:8080/recruit/${recruitId}`);
-        setPost(response.data); // 응답 데이터를 상태에 저장
+        setPost(response.data);
       } catch (error) {
         console.error("Error fetching post:", error);
       }
     };
 
+    const checkAuthor = async () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) return;
+
+      try {
+        const response = await axios.get(`http://localhost:8080/recruit/author/${recruitId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
+        if (response.data.author) {
+          setShowButtons(true);
+        }
+      } catch (error) {
+        console.error("작성자 확인 실패:", error);
+      }
+    };
+
     fetchPost();
+    checkAuthor();
   }, [recruitId]);
 
   const handleApplyClick = () => {
-    // 신청 버튼 클릭 시 모달을 열고, 채팅 URL 설정
     setChatUrl(post.chatUrl);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    // 모달 닫기
     setIsModalOpen(false);
   };
 
+  const handleDelete = async () => {
+    const confirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!confirmed) return;
+
+    try {
+      await axios.delete(`http://localhost:8080/recruit/${recruitId}`);
+      alert("삭제되었습니다.");
+      navigate("/");
+    } catch (error) {
+      console.error("삭제 실패:", error);
+      alert("삭제 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleEdit = () => {
+    const confirmed = window.confirm("수정하시겠습니까?");
+    if (confirmed) {
+      navigate(`/recruitForm?recruitId=${recruitId}`);
+    }
+  };
+
   if (!post) {
-    return <div>Loading...</div>; // 데이터를 로딩 중일 때 표시할 내용
+    return <div>Loading...</div>;
   }
 
   return (
     <PageContainer>
-      <PageTitle>모집 상세보기</PageTitle> {/* 글 제목 */}
+      <PageTitle>모집 상세보기</PageTitle>
 
       <FixedButtonContainer>
-        {/* 모집 상태에 따라 버튼을 다르게 표시 */}
         {post.status === 'FULL' ? (
           <SubmitButton status="FULL" disabled>마감</SubmitButton>
         ) : post.status === 'OPEN' ? (
@@ -77,9 +121,7 @@ const ViewPost = () => {
       </FixedButtonContainer>
 
       <ContentContainer>
-
-        <SectionTitle> {post.title} </SectionTitle> {/* 글 제목 */}
-        <p></p>
+        <SectionTitle> {post.title} </SectionTitle>
 
         <CardWrapper>
           <GameInfoCard>
@@ -87,65 +129,67 @@ const ViewPost = () => {
               <CardTitle>매치포인트</CardTitle>
               <Row>
                 <Key> ⚤ 성별</Key>
-                <Value>{post.gender === 'M' ? '남성' : '여성'}</Value> {/* 성별 */}
+                <Value>{post.gender === 'M' ? '남성' : '여성'}</Value>
               </Row>
               <Row>
                 <Key> ✨레벨</Key>
-                <Value>{post.level}</Value> {/* 레벨 */}
+                <Value>{post.level}</Value>
               </Row>
               <Row>
                 <Key> 🏓 라켓</Key>
-                <Value>{post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'} </Value>  {/* 라켓 종류 */}
+                <Value>{post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'}</Value>
               </Row>
               <Row>
                 <Key> 👥 모집 인원</Key>
-                <Value>{post.capacity}명</Value> {/* 모집 인원 */}
+                <Value>{post.capacity}명</Value>
               </Row>
-
             </InfoTable>
           </GameInfoCard>
 
           <GameInfoCard>
             <InfoTable>
               <CardTitle> 모집정보</CardTitle>
-
               <Row>
                 <Key> 🖐 작성자</Key>
-                <Value>{post.userName}</Value> {/* 작성자 이름 */}
+                <Value>{post.userName}</Value>
               </Row>
               <Row>
                 <Key> 📍 장소</Key>
-                <Value> {post.clubName} </Value> {/* 탁구장 이름과 위치 */}
+                <Value>{post.clubName}</Value>
               </Row>
               <Row>
                 <Key>🗓 날짜</Key>
-                <Value> {post.date} </Value> { /* 날짜 */}
+                <Value>{post.date}</Value>
               </Row>
             </InfoTable>
           </GameInfoCard>
-
         </CardWrapper>
 
         <DetailCard>
-
           <CardTitle>상세 내용</CardTitle>
           <p>{post.document}</p>
         </DetailCard>
-
       </ContentContainer>
 
-      {/* 모달이 열려있을 때 채팅 URL을 보여주는 모달 */}
       {isModalOpen && (
         <ModalBackdrop>
           <ModalBox>
             <ModalTitle>신청이 완료되었습니다!</ModalTitle>
             <p>아래의 링크에서 채팅을 시작하세요:</p>
             <a href={chatUrl} target="_blank" rel="noopener noreferrer">채팅 시작</a>
-            <br />
-            <br /> {/* 줄바꿈 추가 */}
+            <br /><br />
             <ModalButton onClick={handleCloseModal}>닫기</ModalButton>
           </ModalBox>
         </ModalBackdrop>
+      )}
+
+      {showButtons && (
+        <div style={{ marginTop: "1rem", textAlign: "center" }}>
+          <ActionButtonContainer>
+            <ModalButton onClick={handleEdit}>수정</ModalButton>
+            <ModalButton onClick={handleDelete}>삭제</ModalButton>
+          </ActionButtonContainer>
+        </div>
       )}
     </PageContainer>
   );

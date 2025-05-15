@@ -5,7 +5,6 @@ import Layout from './components/Layout';
 import MyPage from './components/Mypage';
 import WritePost from './components/RecruitForm';
 import ViewPost from './components/Recruit';
-import ViewPostLogin from './components/Recruit/login';
 import LoginPage from './components/Auth/LoginPage';
 import KakaoRedirectHandler from "./components/Auth/KakaoRedirectHandler";
 
@@ -20,7 +19,6 @@ function App() {
           <Route path="mypage" element={<MyPage />} />           {/* /mypage */}
           <Route path="survey" element={<SurveyPage />} />       {/* /survey */}
           <Route path="recruit/:recruitId" element={<ViewPost />} />           {/* /recruit/1 */}
-          <Route path="recruit-login/:recruitId" element={<ViewPostLogin />} />{/* /recruit-login/1 */}
           <Route path="recruitForm" element={<WritePost />} /> {/* ✅ 여기에 넣기 */}
           <Route path="login" element={<LoginPage />} />
         </Route>
