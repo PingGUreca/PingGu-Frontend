@@ -11,7 +11,7 @@ export const MenuItem = styled.div`
   padding: 10px 20px;
   margin-right: 10px;
   cursor: pointer;
-  border-bottom: ${(props) => (props.active ? '2px solid #3498db' : 'none')};
+  border-bottom: ${(props) => (props.active ? '2px solid #00328F' : 'none')};
   font-weight: ${(props) => (props.active ? 'bold' : 'normal')};
 `;
 
