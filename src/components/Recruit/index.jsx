@@ -13,8 +13,18 @@ import {
   ModalBackdrop,
   ModalBox,
   ModalTitle,
-  ModalButton
-} from '../../styles/Recruit/RecruitFormStyle.js'; // 스타일이 정의된 파일 경로에 맞게 수정해 주세요
+  ModalButton,
+  CardWrapper,
+  GameInfoCard,
+  CardTitle,
+  InfoTable,
+  Row,
+  Key,
+  Value,
+  DetailCard,
+  FixedButtonContainer
+} from '../../styles/Recruit/RecruitFormStyle.js';
+import {SectionTitle} from "../../styles/Auth/SurveyStyles";
 
 const ViewPost = () => {
   const [post, setPost] = useState(null);
@@ -54,26 +64,74 @@ const ViewPost = () => {
   return (
     <PageContainer>
       <PageTitle>모집 상세보기</PageTitle> {/* 글 제목 */}
-      
-      {/* 모집 상태에 따라 버튼을 다르게 표시 */}
-      {post.status === 'FULL' ? (
-        <SubmitButton status="FULL" disabled>마감</SubmitButton>
-      ) : post.status === 'OPEN' ? (
-        <SubmitButton status="OPEN" onClick={handleApplyClick}>신청</SubmitButton>
-      ) : (
-        <SubmitButton status={post.status} disabled>신청 불가</SubmitButton>
-      )}
+
+      <FixedButtonContainer>
+        {/* 모집 상태에 따라 버튼을 다르게 표시 */}
+        {post.status === 'FULL' ? (
+          <SubmitButton status="FULL" disabled>마감</SubmitButton>
+        ) : post.status === 'OPEN' ? (
+          <SubmitButton status="OPEN" onClick={handleApplyClick}>신청</SubmitButton>
+        ) : (
+          <SubmitButton status={post.status} disabled>신청 불가</SubmitButton>
+        )}
+      </FixedButtonContainer>
 
       <ContentContainer>
-        <p><strong>제목:</strong> {post.title}</p> {/* 글 제목 */}
-        <p><strong>작성자:</strong> {post.userName}</p> {/* 작성자 이름 */}
-        <p><strong>장소:</strong> {post.clubName} ({post.location})</p> {/* 탁구장 이름과 위치 */}
-        <p><strong>날짜:</strong> {post.date}</p> {/* 날짜 */}
-        <p><strong>성별:</strong> {post.gender === 'M' ? '남성' : '여성'}</p> {/* 성별 */}
-        <p><strong>레벨:</strong> {post.level}</p> {/* 레벨 */}
-        <p><strong>라켓:</strong> {post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'}</p> {/* 라켓 종류 */}
-        <p><strong>모집 인원:</strong> {post.capacity}명</p> {/* 모집 인원 */}
-        <p><strong>상세 내용:</strong> {post.document}</p> {/* 상세 내용 */}
+
+        <SectionTitle> {post.title} </SectionTitle> {/* 글 제목 */}
+        <p></p>
+
+        <CardWrapper>
+          <GameInfoCard>
+            <InfoTable>
+              <CardTitle>매치포인트</CardTitle>
+              <Row>
+                <Key> ⚤ 성별</Key>
+                <Value>{post.gender === 'M' ? '남성' : '여성'}</Value> {/* 성별 */}
+              </Row>
+              <Row>
+                <Key> ✨레벨</Key>
+                <Value>{post.level}</Value> {/* 레벨 */}
+              </Row>
+              <Row>
+                <Key> 🏓 라켓</Key>
+                <Value>{post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'} </Value>  {/* 라켓 종류 */}
+              </Row>
+              <Row>
+                <Key> 👥 모집 인원</Key>
+                <Value>{post.capacity}명</Value> {/* 모집 인원 */}
+              </Row>
+
+            </InfoTable>
+          </GameInfoCard>
+
+          <GameInfoCard>
+            <InfoTable>
+              <CardTitle> 모집정보</CardTitle>
+
+              <Row>
+                <Key> 🖐 작성자</Key>
+                <Value>{post.userName}</Value> {/* 작성자 이름 */}
+              </Row>
+              <Row>
+                <Key> 📍 장소</Key>
+                <Value> {post.clubName} </Value> {/* 탁구장 이름과 위치 */}
+              </Row>
+              <Row>
+                <Key>🗓 날짜</Key>
+                <Value> {post.date} </Value> { /* 날짜 */}
+              </Row>
+            </InfoTable>
+          </GameInfoCard>
+
+        </CardWrapper>
+
+        <DetailCard>
+
+          <CardTitle>상세 내용</CardTitle>
+          <p>{post.document}</p>
+        </DetailCard>
+
       </ContentContainer>
 
       {/* 모달이 열려있을 때 채팅 URL을 보여주는 모달 */}
@@ -83,6 +141,7 @@ const ViewPost = () => {
             <ModalTitle>신청이 완료되었습니다!</ModalTitle>
             <p>아래의 링크에서 채팅을 시작하세요:</p>
             <a href={chatUrl} target="_blank" rel="noopener noreferrer">채팅 시작</a>
+            <br />
             <br /> {/* 줄바꿈 추가 */}
             <ModalButton onClick={handleCloseModal}>닫기</ModalButton>
           </ModalBox>
