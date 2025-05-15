@@ -35,46 +35,55 @@ const ViewPost = () => {
   const [post, setPost] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [chatUrl, setChatUrl] = useState("");
-  const [showButtons, setShowButtons] = useState(false); // 버튼 표시 여부
+  const [showButtons, setShowButtons] = useState(false);
   const { recruitId } = useParams();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchPost = async () => {
+      const token = localStorage.getItem('access_token');
+
       try {
-        const response = await axios.get(`http://localhost:8080/recruit/${recruitId}`);
+        const response = await axios.get(`http://localhost:8080/recruit/${recruitId}`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+
         setPost(response.data);
+        setShowButtons(response.data.author); // author 값으로 판단
       } catch (error) {
         console.error("Error fetching post:", error);
       }
     };
 
-    const checkAuthor = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) return;
+    fetchPost();
+  }, [recruitId]);
 
-      try {
-        const response = await axios.get(`http://localhost:8080/recruit/author/${recruitId}`, {
+  const handleApplyClick = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/recruit/${recruitId}/apply`,
+        {},
+        {
           headers: {
             Authorization: `Bearer ${token}`
           }
-        });
-
-        if (response.data.author) {
-          setShowButtons(true);
         }
-      } catch (error) {
-        console.error("작성자 확인 실패:", error);
+      );
+
+      if (response.status === 200) {
+        setChatUrl(post.chatUrl);
+        setIsModalOpen(true);
       }
-    };
-
-    fetchPost();
-    checkAuthor();
-  }, [recruitId]);
-
-  const handleApplyClick = () => {
-    setChatUrl(post.chatUrl);
-    setIsModalOpen(true);
+    } catch (error) {
+      console.error("신청 실패:", error);
+      alert("신청 중 오류가 발생했습니다.");
+    }
   };
 
   const handleCloseModal = () => {
@@ -82,17 +91,17 @@ const ViewPost = () => {
   };
 
   const handleDelete = async () => {
-  const confirmed = window.confirm("정말 삭제하시겠습니까?");
-  if (!confirmed) return;
+    const confirmed = window.confirm("정말 삭제하시겠습니까?");
+    if (!confirmed) return;
 
-  const token = localStorage.getItem('access_token');
-  if (!token) {
-    alert("로그인이 필요합니다.");
-    return;
-  }
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
 
-  try {
-    await axios.delete(`http://localhost:8080/recruit/${recruitId}`, {
+    try {
+      await axios.delete(`http://localhost:8080/recruit/${recruitId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -105,11 +114,36 @@ const ViewPost = () => {
     }
   };
 
-
   const handleEdit = () => {
     const confirmed = window.confirm("수정하시겠습니까?");
     if (confirmed) {
       navigate(`/recruitForm?recruitId=${recruitId}`);
+    }
+  };
+
+  const toggleLike = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        `http://localhost:8080/recruit/${recruitId}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      // 좋아요 상태 토글
+      setPost(prev => ({ ...prev, like: !prev.like }));
+    } catch (error) {
+      console.error("좋아요 실패:", error);
+      alert("좋아요 처리 중 오류가 발생했습니다.");
     }
   };
 
@@ -132,46 +166,39 @@ const ViewPost = () => {
       </FixedButtonContainer>
 
       <ContentContainer>
-        <SectionTitle> {post.title} </SectionTitle>
+        <SectionTitle>
+          {post.title}
+          <span
+            onClick={toggleLike}
+            style={{
+              cursor: 'pointer',
+              marginLeft: '0.5rem',
+              color: post.like ? 'red' : 'gray',
+              fontSize: '1.5rem'
+            }}
+            title={post.like ? "좋아요 취소" : "좋아요"}
+          >
+            {post.like ? '♥' : '♡'}
+          </span>
+        </SectionTitle>
 
         <CardWrapper>
           <GameInfoCard>
             <InfoTable>
               <CardTitle>매치포인트</CardTitle>
-              <Row>
-                <Key> ⚤ 성별</Key>
-                <Value>{post.gender === 'M' ? '남성' : '여성'}</Value>
-              </Row>
-              <Row>
-                <Key> ✨레벨</Key>
-                <Value>{post.level}</Value>
-              </Row>
-              <Row>
-                <Key> 🏓 라켓</Key>
-                <Value>{post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'}</Value>
-              </Row>
-              <Row>
-                <Key> 👥 모집 인원</Key>
-                <Value>{post.capacity}명</Value>
-              </Row>
+              <Row><Key> ⚤ 성별</Key><Value>{post.gender === 'M' ? '남성' : '여성'}</Value></Row>
+              <Row><Key> ✨레벨</Key><Value>{post.level}</Value></Row>
+              <Row><Key> 🏓 라켓</Key><Value>{post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'}</Value></Row>
+              <Row><Key> 👥 모집 인원</Key><Value>{post.capacity}명</Value></Row>
             </InfoTable>
           </GameInfoCard>
 
           <GameInfoCard>
             <InfoTable>
-              <CardTitle> 모집정보</CardTitle>
-              <Row>
-                <Key> 🖐 작성자</Key>
-                <Value>{post.userName}</Value>
-              </Row>
-              <Row>
-                <Key> 📍 장소</Key>
-                <Value>{post.clubName}</Value>
-              </Row>
-              <Row>
-                <Key>🗓 날짜</Key>
-                <Value>{post.date}</Value>
-              </Row>
+              <CardTitle>모집정보</CardTitle>
+              <Row><Key> 🖐 작성자</Key><Value>{post.userName}</Value></Row>
+              <Row><Key> 📍 장소</Key><Value>{post.clubName}</Value></Row>
+              <Row><Key>🗓 날짜</Key><Value>{post.date}</Value></Row>
             </InfoTable>
           </GameInfoCard>
         </CardWrapper>
