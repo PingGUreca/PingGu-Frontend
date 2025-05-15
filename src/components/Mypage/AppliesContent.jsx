@@ -1,5 +1,6 @@
 import React from 'react';
-// 공통 스타일 임포트
+import { useNavigate } from 'react-router-dom';
+
 import {
   ListContainer,
   ListItem,
@@ -9,7 +10,6 @@ import {
   EmptyMessage
 } from '../../styles/CommonStyles.js';
 
-// 지원 전용 스타일 임포트
 import {
   ItemStatus,
   ActionButton,
@@ -17,14 +17,31 @@ import {
 } from '../../styles/Mypage/AppliesStyles.js';
 
 const AppliesContent = ({ appliesData, onCancelApply }) => {
+  const navigate = useNavigate();
+
+  const handleItemClick = (e, id) => {
+    // 버튼이나 링크 클릭 시에는 이동하지 않음
+    if (
+      e.target.tagName === 'BUTTON' ||
+      e.target.tagName === 'A'
+    ) {
+      return;
+    }
+    navigate(`/recruit/${id}`);
+  };
+
   return (
     <div>
-      <h2>내가 지원한 현황</h2>
-      
+      <h2>나의 지원 현황</h2>
+
       {appliesData && appliesData.length > 0 ? (
         <ListContainer>
           {appliesData.map(item => (
-            <ListItem key={item.id}>
+            <ListItem
+              key={item.id}
+              onClick={(e) => handleItemClick(e, item.id)}
+              style={{ cursor: 'pointer' }}
+            >
               <ItemTitle>
                 {item.title}
                 <ItemStatus active={item.status === "모집 진행중"}>
@@ -33,7 +50,7 @@ const AppliesContent = ({ appliesData, onCancelApply }) => {
               </ItemTitle>
               <ItemDetail>일시: {item.date}</ItemDetail>
               <ItemDetail>장소: {Array.isArray(item.club) ? item.club.join(' - ') : item.club}</ItemDetail>
-              
+
               <ButtonGroup>
                 {item.status === "모집 진행중" && (
                   <ActionButton onClick={() => onCancelApply(item.id)}>

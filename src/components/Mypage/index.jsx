@@ -99,7 +99,7 @@ const MyPage = () => {
     { id: 'profile', label: '프로필 정보' },
     { id: 'likes', label: '좋아요 누른 모임' },
     { id: 'recruits', label: '내 모집 내역' },
-    { id: 'applies', label: '내가 지원 현황' }
+    { id: 'applies', label: '나의 지원 현황' }
   ];
 
   // 탭 변경 핸들러

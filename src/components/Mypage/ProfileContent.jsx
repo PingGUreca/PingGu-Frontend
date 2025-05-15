@@ -96,7 +96,7 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
 
     try {
       // PUT 요청으로 프로필 업데이트
-      await axios.put(`/mypage/profile?memberId=${memberId}`, formData);
+      await axios.put(`http://localhost:8080/mypage/profile?memberId=${memberId}`, formData);
       await refreshData();
       setIsEditing(false);
     } catch (err) {
@@ -233,20 +233,8 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
       ) : (
         <InfoCard>
           <InfoItem>
-            <InfoLabel>이름:</InfoLabel>
-            <InfoValue>{userData?.name || '미설정'}</InfoValue>
-          </InfoItem>
-          <InfoItem>
             <InfoLabel>성별:</InfoLabel>
             <InfoValue>{getGenderText(userData?.gender)}</InfoValue>
-          </InfoItem>
-          <InfoItem>
-            <InfoLabel>지역:</InfoLabel>
-            <InfoValue>{userData?.gu || '미설정'}</InfoValue>
-          </InfoItem>
-          <InfoItem>
-            <InfoLabel>레벨:</InfoLabel>
-            <InfoValue>{getLevelText(userData?.level)}</InfoValue>
           </InfoItem>
           <InfoItem>
             <InfoLabel>주로 사용하는 손:</InfoLabel>

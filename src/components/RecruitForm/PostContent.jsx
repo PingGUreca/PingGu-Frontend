@@ -18,6 +18,7 @@ const LocationModal = ({ onClose, onSelectClub }) => {
   ];
   const [selectedGu, setSelectedGu] = useState(null);
   const [clubs, setClubs] = useState([]);
+  // const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (selectedGu) {
@@ -52,6 +53,8 @@ const LocationModal = ({ onClose, onSelectClub }) => {
             <ModalButton style={{ marginTop: '1rem' }} onClick={() => setSelectedGu(null)}>← 구 다시 선택</ModalButton>
           </>
         )}
+        <br></br>
+        <ModalButton style={{ marginTop: '1rem' }} onClick={onClose}>닫기</ModalButton>
       </ModalBox>
     </ModalBackdrop>
   );
