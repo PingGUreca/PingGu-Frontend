@@ -82,11 +82,21 @@ const ViewPost = () => {
   };
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("정말 삭제하시겠습니까?");
-    if (!confirmed) return;
+  const confirmed = window.confirm("정말 삭제하시겠습니까?");
+  if (!confirmed) return;
 
-    try {
-      await axios.delete(`http://localhost:8080/recruit/${recruitId}`);
+  const token = localStorage.getItem('access_token');
+  if (!token) {
+    alert("로그인이 필요합니다.");
+    return;
+  }
+
+  try {
+    await axios.delete(`http://localhost:8080/recruit/${recruitId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       alert("삭제되었습니다.");
       navigate("/");
     } catch (error) {
@@ -94,6 +104,7 @@ const ViewPost = () => {
       alert("삭제 중 오류가 발생했습니다.");
     }
   };
+
 
   const handleEdit = () => {
     const confirmed = window.confirm("수정하시겠습니까?");
