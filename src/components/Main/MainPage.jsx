@@ -80,8 +80,7 @@ const MainPage = () => {
       };
 
       // ✅ 로컬스토리지에서 access token 꺼냄
-      //const accessToken = localStorage.getItem('access_token');
-      const accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJtZW1iZXJJZCI6NSwiaWF0IjoxNzQ3MjQxNDI4LCJleHAiOjE3NDcyNzc0Mjh9.TPMninkkqmKqxCzrZpMsDbs4ZmC4MlIXrNXzEHpLV1c"
+      const accessToken = localStorage.getItem('access_token');
 
       const response = await axios.get('/recruit', {
         params,
