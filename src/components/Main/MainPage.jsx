@@ -69,6 +69,7 @@ const MainPage = () => {
     isFetchingRef.current = true;
     try {
       setLoading(true);
+
       const params = {
         date: format(selectedDate, 'yyyy-MM-dd'),
         gu: district || undefined,
@@ -77,8 +78,21 @@ const MainPage = () => {
         page: reset ? 0 : page,
         size: 5
       };
-  
-      const response = await axios.get('/recruit', { params });
+
+      // ✅ 로컬스토리지에서 access token 꺼냄
+      //const accessToken = localStorage.getItem('access_token');
+      const accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJtZW1iZXJJZCI6NSwiaWF0IjoxNzQ3MjQxNDI4LCJleHAiOjE3NDcyNzc0Mjh9.TPMninkkqmKqxCzrZpMsDbs4ZmC4MlIXrNXzEHpLV1c"
+
+      const response = await axios.get('/recruit', {
+        params,
+        headers: {
+          // ✅ Authorization 헤더에 Bearer 토큰 추가
+          Authorization: `Bearer ${accessToken}`
+        },
+        // ✅ withCredentials 설정을 추가하면 refresh_token 쿠키도 함께 전송됨
+        withCredentials: true
+      });
+
       const fetched = response.data.content;
       const isLast = response.data.last;
   

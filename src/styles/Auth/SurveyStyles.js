@@ -46,7 +46,7 @@ export const ButtonGroup = styled.div`
 `;
 
 export const SelectButton = styled.button`
-  background-color: ${({ active }) => (active ? '#ff6b00' : '#eee')};
+  background-color: ${({ active }) => (active ? '#00328F' : '#eee')};
   color: ${({ active }) => (active ? '#fff' : '#333')};
   padding: 10px 20px;
   border: none;
@@ -56,7 +56,7 @@ export const SelectButton = styled.button`
   transition: background-color 0.2s, color 0.2s;
 
   &:hover {
-    background-color: #ff6b00;
+    background-color: #00328F;
     color: #fff;
   }
 
@@ -69,7 +69,7 @@ export const SelectButton = styled.button`
 export const SubmitButton = styled.button`
   margin-top: 40px;
   padding: 12px 28px;
-  background-color: #ff6b00;
+  background-color: #00328F;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -147,13 +147,13 @@ export const DistrictCard = styled.div`
   padding: 12px;
   text-align: center;
   border-radius: 6px;
-  background-color: ${({ active }) => (active ? '#ff6b00' : '#f2f2f2')};
+  background-color: ${({ active }) => (active ? '#00328F' : '#f2f2f2')};
   color: ${({ active }) => (active ? '#fff' : '#333')};
   font-weight: 500;
   cursor: pointer;
   transition: 0.2s;
 
   &:hover {
-    background-color: ${({ active }) => (active ? '#ff6b00' : '#e0e0e0')};
+    background-color: ${({ active }) => (active ? '#00328F' : '#e0e0e0')};
   }
 `;
