@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
-
 
 import {
   Form,
@@ -66,7 +65,7 @@ const getRacketText = (racket) => {
   }
 };
 
-const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) => {
+const ProfileContent = ({ userData, refreshData, onDeleteAccount, getRequestConfig }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: userData?.name || '',
@@ -78,6 +77,9 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const fileInputRef = useRef(null);
 
   // 폼 입력 처리
   const handleChange = (e) => {
@@ -88,6 +90,54 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
     }));
   };
 
+  // 프로필 이미지 클릭
+  const handleProfileImageClick = () => {
+    if (isEditing) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // 프로필 이미지 선택
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    setSelectedFile(file);
+    
+    // 미리보기용 URL 생성
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // 프로필 이미지 업로드
+  const uploadProfileImage = async (file) => {
+    if (!file) return null;
+    
+    const config = getRequestConfig();
+    if (!config) return null;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await axios.post('/mypage/profile-image', formData, {
+        ...config,
+        headers: {
+          ...config.headers,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      return response.data; // 백엔드에서 반환하는 이미지 URL
+    } catch (err) {
+      console.error('Error uploading profile image:', err);
+      throw err;
+    }
+  };
+
   // 프로필 저장
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,10 +145,29 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
     setError(null);
 
     try {
-      // PUT 요청으로 프로필 업데이트
-      await axios.put(`http://localhost:8080/mypage/profile?memberId=${memberId}`, formData);
+      const config = getRequestConfig();
+      if (!config) return;
+      
+      // 먼저 프로필 이미지가 있으면 업로드
+      if (selectedFile) {
+        try {
+          await uploadProfileImage(selectedFile);
+        } catch (err) {
+          console.error('Error uploading profile image:', err);
+          setError('프로필 이미지 업로드에 실패했습니다.');
+          setIsSubmitting(false);
+          return;
+        }
+      }
+      
+      // 프로필 정보 업데이트
+      await axios.put('/mypage/profile', formData, config);
+      
+      // 프로필 정보 새로고침
       await refreshData();
+      
       setIsEditing(false);
+      setSelectedFile(null);
     } catch (err) {
       setError('프로필 저장에 실패했습니다. 다시 시도해주세요.');
       console.error('Error updating profile:', err);
@@ -110,6 +179,9 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
   // 편집 모드 취소
   const handleCancel = () => {
     setIsEditing(false);
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    
     // 원래 정보로 폼 데이터 복구
     setFormData({
       name: userData?.name || '',
@@ -121,12 +193,54 @@ const ProfileContent = ({ userData, refreshData, memberId, onDeleteAccount }) =>
     });
   };
 
+  // 프로필 이미지 URL 또는 미리보기
+  const profileImageUrl = previewUrl || userData?.profileImgUrl;
+
   return (
     <ProfileContainer>
       <ProfileHeader>
-        <ProfileImage>
-          <span>{userData?.name?.charAt(0) || '?'}</span>
+        <ProfileImage 
+          onClick={handleProfileImageClick} 
+          style={{ cursor: isEditing ? 'pointer' : 'default' }}
+        >
+          {profileImageUrl ? (
+            <img 
+              src={profileImageUrl} 
+              alt="프로필" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+            />
+          ) : (
+            <span>{userData?.name?.charAt(0) || '?'}</span>
+          )}
+          {isEditing && (
+            <div 
+              style={{ 
+                position: 'absolute', 
+                bottom: 0, 
+                right: 0, 
+                background: '#007bff', 
+                color: 'white', 
+                borderRadius: '50%', 
+                width: '24px',
+                height: '24px', 
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                fontWeight: 'bold'
+              }}
+            >
+              +
+            </div>
+          )}
         </ProfileImage>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          accept="image/*"
+          onChange={handleImageChange}
+        />
         <ProfileInfo>
           <ProfileName>{userData?.name || '사용자'}</ProfileName>
           <ProfileDetail>레벨: {getLevelText(userData?.level)}</ProfileDetail>
