@@ -32,7 +32,6 @@ const MenuGroup = styled.div`
   }
 `;
 
-// 본문 콘텐츠 Wrapper
 const ContentWrapper = styled.div`
   max-width: 1000px;
   margin: 2rem auto;
@@ -41,30 +40,32 @@ const ContentWrapper = styled.div`
 `;
 
 const Layout = () => {
-  const location = useLocation();
+    const location = useLocation();
+    const isLoggedIn = !!localStorage.getItem('access_token'); // ✅ 토큰 유무로 로그인 상태 판단
 
-  return (
-    <>
-      <MenuTab>
-        {/* 왼쪽: 소셜매칭, 모집글쓰기 */}
-        <MenuGroup>
-          <Link to="/" className={location.pathname === '/' ? 'active' : ''}>🔥 소셜매칭</Link>
-          <Link to="/write" className={location.pathname === '/write' ? 'active' : ''}>📋 모집글쓰기</Link>
-        </MenuGroup>
+    return (
+        <>
+            <MenuTab>
+                {/* 왼쪽: 소셜매칭, 모집글쓰기 */}
+                <MenuGroup>
+                    <Link to="/" className={location.pathname === '/' ? 'active' : ''}>🔥 소셜매칭</Link>
+                    <Link to="/write" className={location.pathname === '/write' ? 'active' : ''}>📋 모집글쓰기</Link>
+                </MenuGroup>
 
-        {/* 오른쪽: 마이페이지, 로그인 */}
-        <MenuGroup>
-          <Link to="/mypage" className={location.pathname === '/mypage' ? 'active' : ''}>MyPage</Link>
-          <Link to="/login" className={location.pathname === '/login' ? 'active' : ''}>로그인</Link>
-        </MenuGroup>
-      </MenuTab>
+                {/* 오른쪽: 마이페이지, 로그인 */}
+                <MenuGroup>
+                    <Link to="/mypage" className={location.pathname === '/mypage' ? 'active' : ''}>MyPage</Link>
+                    {!isLoggedIn && ( // ✅ 로그인 상태가 아니면 로그인 버튼 표시
+                        <Link to="/login" className={location.pathname === '/login' ? 'active' : ''}>로그인</Link>
+                    )}
+                </MenuGroup>
+            </MenuTab>
 
-      {/* 여기서 하위 페이지 감싸줌 */}
-      <ContentWrapper>
-        <Outlet />
-      </ContentWrapper>
-    </>
-  );
+            <ContentWrapper>
+                <Outlet />
+            </ContentWrapper>
+        </>
+    );
 };
 
 export default Layout;
