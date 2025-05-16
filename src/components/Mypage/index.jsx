@@ -29,63 +29,106 @@ const MyPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // 임시 memberId (실제로는 JWT에서 추출하거나 로그인 상태에서 가져옴)
-  // TODO: JWT 구현 이후 변경 예정
-  const memberId = 100;  // 예시 ID 값
+  // JWT 토큰 가져오기
+  const getAccessToken = () => {
+    return localStorage.getItem('access_token');
+  };
+
+  // API 요청을 위한 기본 설정
+  const getRequestConfig = () => {
+    const accessToken = getAccessToken();
+    // 토큰이 없으면 로그인 페이지로 리다이렉트
+    if (!accessToken) {
+      navigate('/login');
+      return null;
+    }
+    
+    return {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      },
+      withCredentials: true // refresh token 쿠키를 함께 전송
+    };
+  };
 
   // 프로필 데이터 새로고침 함수
   const refreshProfileData = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/mypage?memberId=${memberId}`);
+      const config = getRequestConfig();
+      if (!config) return false;
+      
+      const response = await axios.get('/mypage', config);
       setUserData(response.data);
       return true;
     } catch (err) {
       console.error('Error refreshing profile data:', err);
+      if (err.response && err.response.status === 401) {
+        // 인증 오류 시 로그인 페이지로 리다이렉트
+        navigate('/login');
+      }
       return false;
     }
   };
 
-  // 사용자 데이터 가져오기
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        
-        // 프로필 정보 가져오기
-        const profileResponse = await axios.get(`http://localhost:8080/mypage?memberId=${memberId}`);
-        setUserData(profileResponse.data);
-        
-        // 좋아요 누른 모임 가져오기
-        const likesResponse = await axios.get(`http://localhost:8080/mypage/likes?memberId=${memberId}`);
-        setLikesData(likesResponse.data);
-        
-        // 내 모집 내역 가져오기
-        const recruitsResponse = await axios.get(`http://localhost:8080/mypage/recruits?memberId=${memberId}`);
-        setRecruitsData(recruitsResponse.data);
-        
-        // 내가 지원한 모임 가져오기
-        const appliesResponse = await axios.get(`http://localhost:8080/mypage/applies?memberId=${memberId}`);
-        setAppliesData(appliesResponse.data);
-        
-        setLoading(false);
-      } catch (err) {
-        setError('정보를 불러오는데 실패했습니다.');
-        setLoading(false);
-        console.error('Error fetching user data:', err);
+  // 모든 사용자 데이터 새로고침
+  const refreshAllData = async () => {
+    try {
+      const config = getRequestConfig();
+      if (!config) return;
+      
+      setLoading(true);
+      
+      // 프로필 정보 가져오기
+      const profileResponse = await axios.get('/mypage', config);
+      setUserData(profileResponse.data);
+      
+      // 좋아요 누른 모임 가져오기
+      const likesResponse = await axios.get('/mypage/likes', config);
+      setLikesData(likesResponse.data);
+      
+      // 내 모집 내역 가져오기
+      const recruitsResponse = await axios.get('/mypage/recruits', config);
+      setRecruitsData(recruitsResponse.data);
+      
+      // 내가 지원한 모임 가져오기
+      const appliesResponse = await axios.get('/mypage/applies', config);
+      setAppliesData(appliesResponse.data);
+      
+      setLoading(false);
+    } catch (err) {
+      setError('정보를 불러오는데 실패했습니다.');
+      setLoading(false);
+      console.error('Error fetching user data:', err);
+      
+      if (err.response && err.response.status === 401) {
+        // 인증 오류 시 로그인 페이지로 리다이렉트
+        navigate('/login');
       }
-    };
+    }
+  };
 
-    fetchUserData();
-  }, [memberId]);
+  // 처음 컴포넌트가 마운트될 때 데이터 가져오기
+  useEffect(() => {
+    // 토큰이 없으면 로그인 페이지로 리다이렉트
+    if (!getAccessToken()) {
+      navigate('/login');
+      return;
+    }
+    
+    refreshAllData();
+  }, [navigate]);
 
   // 회원 탈퇴 처리
   const handleDeleteAccount = async () => {
     if (window.confirm('정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
       try {
-        await axios.delete(`http://localhost:8080/mypage?memberId=${memberId}`);
+        const config = getRequestConfig();
+        if (!config) return;
+        
+        await axios.delete('/mypage', config);
         alert('탈퇴가 완료되었습니다.');
         // 로그아웃 처리 및 홈페이지로 리다이렉트
-        localStorage.removeItem('token');
+        localStorage.removeItem('access_token');
         navigate('/');
       } catch (err) {
         alert('탈퇴 처리 중 오류가 발생했습니다.');
@@ -111,10 +154,13 @@ const MyPage = () => {
   const handleCancelApply = async (recruitId) => {
     if (window.confirm('지원을 취소하시겠습니까?')) {
       try {
-        await axios.post(`http://localhost:8080/mypage/applies?memberId=${memberId}&recruitId=${recruitId}`);
+        const config = getRequestConfig();
+        if (!config) return;
+        
+        await axios.post(`/mypage/applies?recruitId=${recruitId}`, {}, config);
         
         // 지원 목록 새로고침
-        const appliesResponse = await axios.get(`http://localhost:8080/mypage/applies?memberId=${memberId}`);
+        const appliesResponse = await axios.get('/mypage/applies', config);
         setAppliesData(appliesResponse.data);
         
         alert('지원이 취소되었습니다.');
@@ -157,8 +203,8 @@ const MyPage = () => {
           <ProfileContent 
             userData={userData} 
             refreshData={refreshProfileData} 
-            memberId={memberId}
-            onDeleteAccount={handleDeleteAccount} 
+            onDeleteAccount={handleDeleteAccount}
+            getRequestConfig={getRequestConfig}
           />
         )}
         {activeTab === 'likes' && <LikesContent likesData={likesData} />}
