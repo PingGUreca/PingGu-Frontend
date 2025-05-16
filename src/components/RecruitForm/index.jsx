@@ -82,13 +82,25 @@ const WritePost = () => {
       chatUrl: postData.chatUrl,
     };
 
+    const accessToken = localStorage.getItem('access_token');
+
     try {
       if (recruitId) {
-        await axios.put(`http://localhost:8080/recruit/${recruitId}`, requestPayload);
+        await axios.put(`http://localhost:8080/recruit/${recruitId}`, requestPayload,{
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          withCredentials: true,
+        })
         alert('글이 수정되었습니다.');
         navigate(`/recruit/${recruitId}`);
       } else {
-        const res = await axios.post('http://localhost:8080/recruit', requestPayload);
+        const res = await axios.post('http://localhost:8080/recruit', requestPayload,{
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          withCredentials: true,
+        });
         const locationUri = res.headers.location;
         if (locationUri) {
           navigate(locationUri);
@@ -114,6 +126,7 @@ const WritePost = () => {
           postData={postData}
           setPostData={setPostData}
           onSubmit={handleSubmit}
+          isEdit={!!recruitId}
         />
       </ContentContainer>
     </PageContainer>

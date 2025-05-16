@@ -60,7 +60,7 @@ const LocationModal = ({ onClose, onSelectClub }) => {
   );
 };
 
-const PostContent = ({ postData, setPostData, onSubmit }) => {
+const PostContent = ({ postData, setPostData, onSubmit, isEdit }) => {
   const [showModal, setShowModal] = useState(false);
   // const navigate = useNavigate();
 
@@ -116,7 +116,20 @@ const PostContent = ({ postData, setPostData, onSubmit }) => {
 
         <FormGroup>
           <Label>인원</Label>
-          <Input type="number" name="limit" value={postData.limit} onChange={handleInputChange} required />
+          <Input
+              type="number"
+              name="limit"
+              value={postData.limit}
+              onChange={handleInputChange}
+              required
+              readOnly={isEdit}
+              style={isEdit ? {
+                backgroundColor: '#e0e0e0',
+                pointerEvents: 'none',   // 클릭 차단 (입력도 불가)
+                color: '#666',
+                cursor: 'not-allowed'
+              } : {}}
+          />
         </FormGroup>
 
         <FormGroup>
