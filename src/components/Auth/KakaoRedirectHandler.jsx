@@ -24,21 +24,21 @@ const KakaoRedirectHandler = () => {
         const fetchLogin = async () => {
             try {
                 const response = await axios.get(`http://localhost:8080/auth/kakao-login?code=${code}`, {
-                    withCredentials: true, // ✅ 쿠키에 refresh_token 받기 위해 필요
+                    withCredentials: true,
                 });
 
-                const { memberId, register } = response.data;
+                const { memberId, registered } = response.data;
 
                 const accessToken = response.headers['authorization']?.split(' ')[1];
                 
                 if (accessToken) {
-                    localStorage.setItem('access_token', accessToken); // ✅ access_token 저장
+                    localStorage.setItem('access_token', accessToken);
                 }
 
-                sessionStorage.setItem('kakao_code_processed', code); // ✅ 중복 요청 방지 플래그
+                sessionStorage.setItem('kakao_code_processed', code);
 
                 // ✅ 회원 여부에 따라 페이지 이동
-                if (register) {
+                if (registered) {
                     navigate('/', { replace: true });
                 } else {
                     navigate(`/survey?memberId=${memberId}`, { replace: true });
