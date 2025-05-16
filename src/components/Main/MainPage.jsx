@@ -1,19 +1,23 @@
+// 1. React 및 라우팅 관련 훅
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+// 2. 외부 라이브러리 (API 요청, 날짜 처리, CSS 등)
 import axios from 'axios';
+import { format, isBefore, isSameDay } from 'date-fns';
 import 'react-datepicker/dist/react-datepicker.css';
+// 3. 프로젝트 내부 스타일 컴포넌트
 import {
   PageContainer, FilterBar, FilterButton,
-  MatchList,TopBanner, BannerImage,
+  MatchList, TopBanner, BannerImage,
   ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalButton,
   DistrictGrid, DistrictCard, SearchButton, CustomDateWrapper, CustomDateButton,
   DateDayText, ArrowButton, StatusTag, MatchTitle, MatchStatus, MatchItemStyled
 } from '../../styles/Main/MainPageStyles';
+// 4. 이미지 asset 파일
 import banner1 from '../../images/banner1.png';
 import banner2 from '../../images/banner2.png';
 import banner3 from '../../images/banner3.png';
 import banner4 from '../../images/banner4.png';
-import { format, isBefore, isSameDay } from 'date-fns';
-import { useNavigate } from 'react-router-dom'; // 추가
 
 const seoulDistricts = [
   '강남구', '강동구', '강북구', '강서구', '관악구', '광진구', '구로구', '금천구',
@@ -39,6 +43,9 @@ const banners = [banner1, banner2, banner3, banner4];
 
 const MainPage = () => {
   const today = new Date();
+  const navigate = useNavigate();
+
+  // 상태 선언
   const [selectedDate, setSelectedDate] = useState(today);
   const [dateOffset, setDateOffset] = useState(0);
   const [district, setDistrict] = useState('');
@@ -48,9 +55,81 @@ const MainPage = () => {
   const [bannerIndex, setBannerIndex] = useState(0);
   const [recruits, setRecruits] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const loader = useRef(null);
   const [hasMore, setHasMore] = useState(true);
+
+  const loader = useRef(null);
+  const isFetchingRef = useRef(false);
+  const fetchRef = useRef();
+  const pageRef = useRef(0); // ✅ page 상태 대체
+
+  // 모집글 API 호출
+  const fetchRecruits = useCallback(async (reset = false) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    setLoading(true);
+
+    try {
+      const currentPage = reset ? 0 : pageRef.current;
+
+      const params = {
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        gu: district || undefined,
+        level: level || undefined,
+        gender: gender || undefined,
+        page: currentPage,
+        size: 4
+      };
+
+      const accessToken = localStorage.getItem('access_token');
+
+      const response = await axios.get('http://localhost:8080/recruit', {
+        params,
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        },
+        withCredentials: true
+      });
+
+      const fetched = response.data.content;
+      const isLast = response.data.last;
+
+      if (reset) {
+        setRecruits(fetched);
+        pageRef.current = 1; // ✅ 페이지 초기화 후 1로 설정
+      } else {
+        setRecruits(prev => [...prev, ...fetched]);
+        pageRef.current += 1; // ✅ 다음 페이지로 증가
+      }
+
+      setHasMore(!isLast);
+    } catch (error) {
+      console.error('모집글 조회 실패:', error);
+    } finally {
+      setLoading(false);
+      isFetchingRef.current = false;
+    }
+  }, [selectedDate, district, level, gender]);
+
+  fetchRef.current = fetchRecruits;
+
+  // 초기 데이터 로딩
+  useEffect(() => {
+    pageRef.current = 0;
+    setHasMore(true);
+    fetchRecruits(true);
+  }, [fetchRecruits]);
+
+  // 무한스크롤 옵저버 등록
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !loading && hasMore) {
+        fetchRef.current(false);
+      }
+    }, { threshold: 1 });
+
+    if (loader.current) observer.observe(loader.current);
+    return () => observer.disconnect();
+  }, [loader, loading, hasMore]);
 
   const getDateRange = (offset) => {
     const base = new Date();
@@ -62,196 +141,129 @@ const MainPage = () => {
     });
   };
 
-  const isFetchingRef = useRef(false);
-
-  const fetchRecruits = useCallback(async (reset = false) => {
-    if (isFetchingRef.current) return;
-    isFetchingRef.current = true;
-    try {
-      setLoading(true);
-
-      const params = {
-        date: format(selectedDate, 'yyyy-MM-dd'),
-        gu: district || undefined,
-        level: level || undefined,
-        gender: gender || undefined,
-        page: reset ? 0 : page,
-        size: 5
-      };
-
-      // ✅ 로컬스토리지에서 access token 꺼냄
-      const accessToken = localStorage.getItem('access_token');
-
-      const response = await axios.get('/recruit', {
-        params,
-        headers: {
-          // ✅ Authorization 헤더에 Bearer 토큰 추가
-          Authorization: `Bearer ${accessToken}`
-        },
-        // ✅ withCredentials 설정을 추가하면 refresh_token 쿠키도 함께 전송됨
-        withCredentials: true
-      });
-
-      const fetched = response.data.content;
-      const isLast = response.data.last;
-  
-      if (reset) {
-        setRecruits(fetched);
-        setPage(1);
-      } else {
-        setRecruits(prev => [...prev, ...fetched]);
-        setPage(prev => prev + 1);
-      }
-
-      setHasMore(!isLast);
-    } catch (error) {
-      console.error('모집글 조회 실패:', error);
-    } finally {
-      setLoading(false);
-      isFetchingRef.current = false;
-    }
-  }, [selectedDate, district, level, gender, page, hasMore]);
-
   const handleSearch = () => {
-    setPage(0);
+    pageRef.current = 0;
     setHasMore(true);
     fetchRecruits(true);
   };
 
-  useEffect(() => {
-    setPage(0);
-    setHasMore(true);
-    fetchRecruits(true);
-  }, [fetchRecruits]);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !loading && hasMore) {
-        fetchRecruits();
-      }
-    }, { threshold: 1 });
-    if (loader.current) observer.observe(loader.current);
-    return () => observer.disconnect();
-  }, [loader, fetchRecruits, loading, hasMore]);
-
-  const navigate = useNavigate(); // 추가
-
-
   return (
-    <PageContainer>
-      <TopBanner>
-        <BannerImage
-          src={banners[bannerIndex]}
-          alt="배너"
-          onClick={() => setBannerIndex((prev) => (prev + 1) % banners.length)}
-        />
-      </TopBanner>
+      <PageContainer>
+        <TopBanner>
+          <BannerImage
+              src={banners[bannerIndex]}
+              alt="배너"
+              onClick={() => setBannerIndex((prev) => (prev + 1) % banners.length)}
+          />
+        </TopBanner>
 
-      <CustomDateWrapper>
-        <ArrowButton
-          onClick={() => {
-            const newOffset = dateOffset - 1;
-            const newStartDate = new Date();
-            newStartDate.setDate(newStartDate.getDate() + newOffset);
-            if (!isBefore(newStartDate, today)) {
-              setDateOffset(newOffset);
-            }
-          }}
-          disabled={isBefore(new Date(new Date().setDate(today.getDate() + dateOffset - 1)), today)}
-        >
-          &lt;
-        </ArrowButton>
-        {getDateRange(dateOffset).map((date) => {
-          const key = format(date, 'yyyy-MM-dd');
-          const isSelected = format(selectedDate, 'yyyy-MM-dd') === key;
-          const dayName = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
-          const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-          const isPast = isBefore(date, today) && !isSameDay(date, today);
-          return (
-            <CustomDateButton
-              key={key}
-              active={isSelected}
-              weekend={isWeekend}
-              disabled={isPast}
-              onClick={() => setSelectedDate(date)}
-            >
-              {`${date.getMonth() + 1}월 ${date.getDate()}일`}
-              <DateDayText active={isSelected}>{dayName}</DateDayText>
-            </CustomDateButton>
-          );
-        })}
-        <ArrowButton onClick={() => setDateOffset((prev) => prev + 1)}>&gt;</ArrowButton>
-      </CustomDateWrapper>
+        <CustomDateWrapper>
+          <ArrowButton
+              onClick={() => {
+                const newOffset = dateOffset - 1;
+                const newStartDate = new Date();
+                newStartDate.setDate(newStartDate.getDate() + newOffset);
+                if (!isBefore(newStartDate, today)) {
+                  setDateOffset(newOffset);
+                }
+              }}
+              disabled={isBefore(new Date(new Date().setDate(today.getDate() + dateOffset - 1)), today)}
+          >
+            &lt;
+          </ArrowButton>
+          {getDateRange(dateOffset).map((date) => {
+            const key = format(date, 'yyyy-MM-dd');
+            const isSelected = format(selectedDate, 'yyyy-MM-dd') === key;
+            const dayName = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()];
+            const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+            const isPast = isBefore(date, today) && !isSameDay(date, today);
+            return (
+                <CustomDateButton
+                    key={key}
+                    active={isSelected}
+                    weekend={isWeekend}
+                    disabled={isPast}
+                    onClick={() => setSelectedDate(date)}
+                >
+                  {`${date.getMonth() + 1}월 ${date.getDate()}일`}
+                  <DateDayText active={isSelected}>{dayName}</DateDayText>
+                </CustomDateButton>
+            );
+          })}
+          <ArrowButton onClick={() => setDateOffset((prev) => prev + 1)}>&gt;</ArrowButton>
+        </CustomDateWrapper>
 
-      <FilterBar>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-          <FilterButton active={!!district} onClick={() => setIsModalOpen(true)}>
-            {district || '구 선택'}
-          </FilterButton>
-          <FilterButton as="select" value={level} onChange={(e) => setLevel(e.target.value)} active={!!level}>
-            <option value="">레벨 선택</option>
-            <option value="BEGINNER">초급</option>
-            <option value="INTERMEDIATE">중급</option>
-            <option value="ADVANCED">고급</option>
-          </FilterButton>
-          <FilterButton as="select" value={gender} onChange={(e) => setGender(e.target.value)} active={!!gender}>
-            <option value="">성별 선택</option>
-            <option value="M">남성</option>
-            <option value="F">여성</option>
-            <option value="ALL">상관없음</option>
-          </FilterButton>
-        </div>
-        <SearchButton onClick={handleSearch}>검색</SearchButton>
-      </FilterBar>
+        <FilterBar>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+            <FilterButton active={!!district} onClick={() => setIsModalOpen(true)}>
+              {district || '구 선택'}
+            </FilterButton>
+            <FilterButton as="select" value={level} onChange={(e) => setLevel(e.target.value)} active={!!level}>
+              <option value="">레벨 선택</option>
+              <option value="BEGINNER">초급</option>
+              <option value="INTERMEDIATE">중급</option>
+              <option value="ADVANCED">고급</option>
+            </FilterButton>
+            <FilterButton as="select" value={gender} onChange={(e) => setGender(e.target.value)} active={!!gender}>
+              <option value="">성별 선택</option>
+              <option value="M">남성</option>
+              <option value="F">여성</option>
+              <option value="ALL">상관없음</option>
+            </FilterButton>
+          </div>
+          <SearchButton onClick={handleSearch}>검색</SearchButton>
+        </FilterBar>
 
-      <MatchList>
-        {recruits.map((match, idx) => {
-          const isClosed = match.current >= match.capacity;
-          return (
-            <MatchItemStyled 
-              key={idx}
-              onClick={() => navigate(`/recruit/${match.recruitId}`)} // ✅ 상세 페이지 이동
-              style={{ cursor: 'pointer' }} // 클릭 가능 표시
-              >
-              <MatchTitle>{match.title}</MatchTitle>
-              <MatchStatus>
-                {`인원 : ${match.current}/${match.capacity}`}
-                {isClosed && <StatusTag>마감</StatusTag>}
-              </MatchStatus>
-              </MatchItemStyled>
-          );
-        })}
-      </MatchList>
+        <MatchList>
+          {recruits.map((match, idx) => {
+            const isClosed = match.current >= match.capacity;
+            return (
+                <MatchItemStyled
+                    key={idx}
+                    onClick={() => navigate(`/recruit/${match.recruitId}`)}
+                    style={{ cursor: 'pointer' }}
+                >
+                  <MatchTitle>{match.title}</MatchTitle>
+                  <MatchStatus>
+                    {`인원 : ${match.current}/${match.capacity}`}
+                    {isClosed && <StatusTag>마감</StatusTag>}
+                  </MatchStatus>
+                </MatchItemStyled>
+            );
+          })}
+          <div ref={loader} style={{ height: '1px' }} />
+        </MatchList>
 
-      {isModalOpen && (
-        <ModalOverlay onClick={() => setIsModalOpen(false)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <ModalHeader>지역을 선택해주세요</ModalHeader>
-            {Object.entries(groupedDistricts).map(([initial, districts]) => (
-              <div key={initial} style={{ marginBottom: '20px' }}>
-                <h4>{initial}</h4>
-                <DistrictGrid>
-                  {districts.map((d) => (
-                    <DistrictCard
-                      key={d}
-                      active={district === d}
-                      onClick={() => {
-                        setDistrict(d);
-                        setIsModalOpen(false);
-                      }}>
-                      {d || '상관없음'}
-                    </DistrictCard>
-                  ))}
-                </DistrictGrid>
-              </div>
-            ))}
-            <ModalFooter>
-              <ModalButton onClick={() => setIsModalOpen(false)}>닫기</ModalButton>
-            </ModalFooter>
-          </ModalContent>
-        </ModalOverlay>
-      )}
-    </PageContainer>
+        {isModalOpen && (
+            <ModalOverlay onClick={() => setIsModalOpen(false)}>
+              <ModalContent onClick={(e) => e.stopPropagation()}>
+                <ModalHeader>지역을 선택해주세요</ModalHeader>
+                {Object.entries(groupedDistricts).map(([initial, districts]) => (
+                    <div key={initial} style={{ marginBottom: '20px' }}>
+                      <h4>{initial}</h4>
+                      <DistrictGrid>
+                        {districts.map((d) => (
+                            <DistrictCard
+                                key={d}
+                                active={district === d}
+                                onClick={() => {
+                                  setDistrict(d);
+                                  setIsModalOpen(false);
+                                }}
+                            >
+                              {d || '상관없음'}
+                            </DistrictCard>
+                        ))}
+                      </DistrictGrid>
+                    </div>
+                ))}
+                <ModalFooter>
+                  <ModalButton onClick={() => setIsModalOpen(false)}>닫기</ModalButton>
+                </ModalFooter>
+              </ModalContent>
+            </ModalOverlay>
+        )}
+      </PageContainer>
   );
 };
 
