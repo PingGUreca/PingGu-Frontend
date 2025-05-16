@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-import { 
-  PageContainer, 
+import {
+  PageContainer,
   PageTitle,
-  ContentContainer 
+  ContentContainer
 } from '../../styles/CommonStyles.js';
 
 import {
@@ -49,7 +49,7 @@ const ViewPost = () => {
         });
 
         setPost(response.data);
-        setShowButtons(response.data.author); // author 값으로 판단
+        setShowButtons(response.data.author);
       } catch (error) {
         console.error("Error fetching post:", error);
       }
@@ -65,24 +65,68 @@ const ViewPost = () => {
       return;
     }
 
+    const parseJwt = (token) => {
+      try {
+        return JSON.parse(atob(token.split('.')[1]));
+      } catch (e) {
+        console.error('JWT 파싱 실패:', e);
+        return null;
+      }
+    };
+
+    const decoded = parseJwt(token);
+    if (!decoded) {
+      alert("잘못된 토큰입니다.");
+      return;
+    }
+
+    const loggedInMemberId = decoded.memberId;
+
+    if (loggedInMemberId === post.memberId) {
+      alert("본인의 모집글에는 신청할 수 없습니다.");
+      return;
+    }
+
     try {
       const response = await axios.post(
-        `http://localhost:8080/recruit/${recruitId}/apply`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
+          `http://localhost:8080/recruit/${recruitId}/apply`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        }
       );
 
       if (response.status === 200) {
         setChatUrl(post.chatUrl);
         setIsModalOpen(true);
+        setPost(prev => ({ ...prev, applied: true }));
       }
     } catch (error) {
       console.error("신청 실패:", error);
       alert("신청 중 오류가 발생했습니다.");
+    }
+  };
+
+  const handleCancelApply = async () => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      alert("로그인이 필요합니다.");
+      return;
+    }
+
+    try {
+      await axios.delete(`http://localhost:8080/recruit/${recruitId}/apply`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      alert("신청이 취소되었습니다.");
+      setPost(prev => ({ ...prev, applied: false }));
+    } catch (error) {
+      console.error("취소 실패:", error);
+      alert("신청 취소 중 오류가 발생했습니다.");
     }
   };
 
@@ -129,17 +173,16 @@ const ViewPost = () => {
     }
 
     try {
-      const response = await axios.post(
-        `http://localhost:8080/recruit/${recruitId}/like`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
+      await axios.post(
+          `http://localhost:8080/recruit/${recruitId}/like`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
           }
-        }
       );
 
-      // 좋아요 상태 토글
       setPost(prev => ({ ...prev, like: !prev.like }));
     } catch (error) {
       console.error("좋아요 실패:", error);
@@ -152,84 +195,86 @@ const ViewPost = () => {
   }
 
   return (
-    <PageContainer>
-      <PageTitle>모집 상세보기</PageTitle>
+      <PageContainer>
+        <PageTitle>모집 상세보기</PageTitle>
 
-      <FixedButtonContainer>
-        {post.status === 'FULL' ? (
-          <SubmitButton status="FULL" disabled>마감</SubmitButton>
-        ) : post.status === 'OPEN' ? (
-          <SubmitButton status="OPEN" onClick={handleApplyClick}>신청</SubmitButton>
-        ) : (
-          <SubmitButton status={post.status} disabled>신청 불가</SubmitButton>
-        )}
-      </FixedButtonContainer>
+        <FixedButtonContainer>
+          {post.applied ? (
+              <SubmitButton status="CANCEL" onClick={handleCancelApply}>신청 취소</SubmitButton>
+          ) : post.status === 'FULL' ? (
+              <SubmitButton status="FULL" disabled>마감</SubmitButton>
+          ) : post.status === 'OPEN' ? (
+              <SubmitButton status="OPEN" onClick={handleApplyClick}>신청</SubmitButton>
+          ) : (
+              <SubmitButton status={post.status} disabled>신청 불가</SubmitButton>
+          )}
+        </FixedButtonContainer>
 
-      <ContentContainer>
-        <SectionTitle>
-          {post.title}
-          <span
-            onClick={toggleLike}
-            style={{
-              cursor: 'pointer',
-              marginLeft: '0.5rem',
-              color: post.like ? 'red' : 'gray',
-              fontSize: '1.5rem'
-            }}
-            title={post.like ? "좋아요 취소" : "좋아요"}
-          >
+        <ContentContainer>
+          <SectionTitle>
+            {post.title}
+            <span
+                onClick={toggleLike}
+                style={{
+                  cursor: 'pointer',
+                  marginLeft: '0.5rem',
+                  color: post.like ? 'red' : 'gray',
+                  fontSize: '1.5rem'
+                }}
+                title={post.like ? "좋아요 취소" : "좋아요"}
+            >
             {post.like ? '♥' : '♡'}
           </span>
-        </SectionTitle>
+          </SectionTitle>
 
-        <CardWrapper>
-          <GameInfoCard>
-            <InfoTable>
-              <CardTitle>매치포인트</CardTitle>
-              <Row><Key> ⚤ 성별</Key><Value>{post.gender === 'M' ? '남성' : '여성'}</Value></Row>
-              <Row><Key> ✨레벨</Key><Value>{post.level}</Value></Row>
-              <Row><Key> 🏓 라켓</Key><Value>{post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'}</Value></Row>
-              <Row><Key> 👥 모집 인원</Key><Value>{post.capacity}명</Value></Row>
-            </InfoTable>
-          </GameInfoCard>
+          <CardWrapper>
+            <GameInfoCard>
+              <InfoTable>
+                <CardTitle>매치포인트</CardTitle>
+                <Row><Key> ⚤ 성별</Key><Value>{post.gender === 'M' ? '남성' : '여성'}</Value></Row>
+                <Row><Key> ✨레벨</Key><Value>{post.level}</Value></Row>
+                <Row><Key> 🏓 라켓</Key><Value>{post.racket === 'SHAKE_HAND' ? 'Shake Hand' : 'Pen Holder'}</Value></Row>
+                <Row><Key> 👥 모집 인원</Key><Value>{post.capacity}명</Value></Row>
+              </InfoTable>
+            </GameInfoCard>
 
-          <GameInfoCard>
-            <InfoTable>
-              <CardTitle>모집정보</CardTitle>
-              <Row><Key> 🖐 작성자</Key><Value>{post.userName}</Value></Row>
-              <Row><Key> 📍 장소</Key><Value>{post.clubName}</Value></Row>
-              <Row><Key>🗓 날짜</Key><Value>{post.date}</Value></Row>
-            </InfoTable>
-          </GameInfoCard>
-        </CardWrapper>
+            <GameInfoCard>
+              <InfoTable>
+                <CardTitle>모집정보</CardTitle>
+                <Row><Key> 🖐 작성자</Key><Value>{post.userName}</Value></Row>
+                <Row><Key> 📍 장소</Key><Value>{post.clubName}</Value></Row>
+                <Row><Key>🗓 날짜</Key><Value>{post.date}</Value></Row>
+              </InfoTable>
+            </GameInfoCard>
+          </CardWrapper>
 
-        <DetailCard>
-          <CardTitle>상세 내용</CardTitle>
-          <p>{post.document}</p>
-        </DetailCard>
-      </ContentContainer>
+          <DetailCard>
+            <CardTitle>상세 내용</CardTitle>
+            <p>{post.document}</p>
+          </DetailCard>
+        </ContentContainer>
 
-      {isModalOpen && (
-        <ModalBackdrop>
-          <ModalBox>
-            <ModalTitle>신청이 완료되었습니다!</ModalTitle>
-            <p>아래의 링크에서 채팅을 시작하세요:</p>
-            <a href={chatUrl} target="_blank" rel="noopener noreferrer">채팅 시작</a>
-            <br /><br />
-            <ModalButton onClick={handleCloseModal}>닫기</ModalButton>
-          </ModalBox>
-        </ModalBackdrop>
-      )}
+        {isModalOpen && (
+            <ModalBackdrop>
+              <ModalBox>
+                <ModalTitle>신청이 완료되었습니다!</ModalTitle>
+                <p>아래의 링크에서 채팅을 시작하세요:</p>
+                <a href={chatUrl} target="_blank" rel="noopener noreferrer">채팅 시작</a>
+                <br /><br />
+                <ModalButton onClick={handleCloseModal}>닫기</ModalButton>
+              </ModalBox>
+            </ModalBackdrop>
+        )}
 
-      {showButtons && (
-        <div style={{ marginTop: "1rem", textAlign: "center" }}>
-          <ActionButtonContainer>
-            <ModalButton onClick={handleEdit}>수정</ModalButton>
-            <ModalButton onClick={handleDelete}>삭제</ModalButton>
-          </ActionButtonContainer>
-        </div>
-      )}
-    </PageContainer>
+        {showButtons && (
+            <div style={{ marginTop: "1rem", textAlign: "center" }}>
+              <ActionButtonContainer>
+                <ModalButton onClick={handleEdit}>수정</ModalButton>
+                <ModalButton onClick={handleDelete}>삭제</ModalButton>
+              </ActionButtonContainer>
+            </div>
+        )}
+      </PageContainer>
   );
 };
 

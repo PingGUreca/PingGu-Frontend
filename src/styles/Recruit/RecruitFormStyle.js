@@ -156,7 +156,7 @@ export const SubmitButton = styled(Button)`
   transition: all 0.3s ease-in-out;
 
   background-color: ${({ status }) =>
-    status === 'FULL' ? '#ff4d4f' : status === 'OPEN' ? '#00328F' : '#dcdcdc'};
+    status === 'FULL' ? '#ff4d4f' : status === 'OPEN' ? '#00328F' :status === 'CANCEL' ? '#f39c12' : '#dcdcdc'};
 
   //color: white;
 

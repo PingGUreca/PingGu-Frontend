@@ -62,6 +62,26 @@ const MainPage = () => {
   const fetchRef = useRef();
   const pageRef = useRef(0); // ✅ page 상태 대체
 
+  // JWT 토큰 가져오기
+  const getAccessToken = () => {
+    return localStorage.getItem('access_token');
+  };
+
+  const getRequestConfig = () => {
+    const accessToken = getAccessToken();
+    // 토큰이 없으면 로그인 페이지로 리다이렉트
+    if (!accessToken) {
+      return null;
+    }
+
+    return {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      },
+      withCredentials: true // refresh token 쿠키를 함께 전송
+    };
+  };
+
   // 모집글 API 호출
   const fetchRecruits = useCallback(async (reset = false) => {
     if (isFetchingRef.current) return;
@@ -80,14 +100,12 @@ const MainPage = () => {
         size: 4
       };
 
-      const accessToken = localStorage.getItem('access_token');
+      const config = getRequestConfig();
+
 
       const response = await axios.get('http://localhost:8080/recruit', {
         params,
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        },
-        withCredentials: true
+        config
       });
 
       const fetched = response.data.content;
