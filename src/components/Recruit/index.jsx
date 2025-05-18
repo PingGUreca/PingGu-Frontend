@@ -44,7 +44,7 @@ const ViewPost = () => {
       const token = localStorage.getItem('access_token');
 
       try {
-        const response = await axios.get(`http://localhost:8080/recruit/${recruitId}`, {
+        const response = await axios.get(`https://pinggu-backend.fly.dev/recruit/${recruitId}`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
@@ -89,7 +89,7 @@ const ViewPost = () => {
 
     try {
       const response = await axios.post(
-          `http://localhost:8080/recruit/${recruitId}/apply`,
+          `https://pinggu-backend.fly.dev/recruit/${recruitId}/apply`,
           {},
           {
             headers: {
@@ -117,7 +117,7 @@ const ViewPost = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:8080/recruit/${recruitId}/apply`, {
+      await axios.delete(`https://pinggu-backend.fly.dev/recruit/${recruitId}/apply`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -145,7 +145,7 @@ const ViewPost = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:8080/recruit/${recruitId}`, {
+      await axios.delete(`https://pinggu-backend.fly.dev/recruit/${recruitId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -174,7 +174,7 @@ const ViewPost = () => {
 
     try {
       await axios.post(
-          `http://localhost:8080/recruit/${recruitId}/like`,
+          `https://pinggu-backend.fly.dev/recruit/${recruitId}/like`,
           {},
           {
             headers: {

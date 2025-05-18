@@ -38,7 +38,7 @@ const SurveyPage = () => {
         level
       };
 
-      const response = await axios.post('http://localhost:8080/auth/signup', requestBody, {
+      const response = await axios.post('https://pinggu-backend.fly.dev/auth/signup', requestBody, {
         withCredentials: true
       });
 

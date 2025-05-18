@@ -37,7 +37,7 @@ const WritePost = () => {
 
     const fetchPost = async () => {
       try {
-        const response = await axios.get(`http://localhost:8080/recruit/${recruitId}`);
+        const response = await axios.get(`https://pinggu-backend.fly.dev/recruit/${recruitId}`);
         const data = response.data;
 
         setPostData({
@@ -86,7 +86,7 @@ const WritePost = () => {
 
     try {
       if (recruitId) {
-        await axios.put(`http://localhost:8080/recruit/${recruitId}`, requestPayload,{
+        await axios.put(`https://pinggu-backend.fly.dev/recruit/${recruitId}`, requestPayload,{
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },
@@ -95,7 +95,7 @@ const WritePost = () => {
         alert('글이 수정되었습니다.');
         navigate(`/recruit/${recruitId}`);
       } else {
-        const res = await axios.post('http://localhost:8080/recruit', requestPayload,{
+        const res = await axios.post('https://pinggu-backend.fly.dev/recruit', requestPayload,{
           headers: {
             Authorization: `Bearer ${accessToken}`,
           },

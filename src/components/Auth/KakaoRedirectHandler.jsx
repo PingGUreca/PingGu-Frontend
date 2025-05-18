@@ -23,7 +23,7 @@ const KakaoRedirectHandler = () => {
 
         const fetchLogin = async () => {
             try {
-                const response = await axios.get(`http://localhost:8080/auth/kakao-login?code=${code}`, {
+                const response = await axios.get(`https://pinggu-backend.fly.dev/auth/kakao-login?code=${code}`, {
                     withCredentials: true,
                 });
 

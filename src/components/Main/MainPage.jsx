@@ -103,7 +103,7 @@ const MainPage = () => {
       const config = getRequestConfig();
 
 
-      const response = await axios.get('http://localhost:8080/recruit', {
+      const response = await axios.get('https://pinggu-backend.fly.dev/recruit', {
         params,
         config
       });

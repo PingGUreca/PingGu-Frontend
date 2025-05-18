@@ -22,7 +22,7 @@ const LocationModal = ({ onClose, onSelectClub }) => {
 
   useEffect(() => {
     if (selectedGu) {
-      axios.get(`http://localhost:8080/location?gu=${selectedGu}`)
+      axios.get(`https://pinggu-backend.fly.dev/location?gu=${selectedGu}`)
         .then(res => setClubs(res.data.clubs))
         .catch(err => console.error('클럽 목록 불러오기 실패:', err));
     }

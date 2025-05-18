@@ -89,7 +89,7 @@ const Layout = () => {
 
     const handleLogout = async () => {
         try {
-            await axios.delete('http://localhost:8080/auth/logout', {
+            await axios.delete('https://pinggu-backend.fly.dev/auth/logout', {
                 withCredentials: true,
             });
             localStorage.removeItem('access_token');
