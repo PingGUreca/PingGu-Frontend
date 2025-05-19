@@ -79,19 +79,19 @@ const MyPage = () => {
       setLoading(true);
       
       // 프로필 정보 가져오기
-      const profileResponse = await axios.get('/mypage', config);
+      const profileResponse = await axios.get('https://pinggu-backend.fly.dev/mypage', config);
       setUserData(profileResponse.data);
       
       // 좋아요 누른 모임 가져오기
-      const likesResponse = await axios.get('/mypage/likes', config);
+      const likesResponse = await axios.get('https://pinggu-backend.fly.dev/mypage/likes', config);
       setLikesData(likesResponse.data);
       
       // 내 모집 내역 가져오기
-      const recruitsResponse = await axios.get('/mypage/recruits', config);
+      const recruitsResponse = await axios.get('https://pinggu-backend.fly.dev/mypage/recruits', config);
       setRecruitsData(recruitsResponse.data);
       
       // 내가 지원한 모임 가져오기
-      const appliesResponse = await axios.get('/mypage/applies', config);
+      const appliesResponse = await axios.get('https://pinggu-backend.fly.dev/mypage/applies', config);
       setAppliesData(appliesResponse.data);
       
       setLoading(false);
@@ -157,10 +157,10 @@ const MyPage = () => {
         const config = getRequestConfig();
         if (!config) return;
         
-        await axios.post(`/mypage/applies?recruitId=${recruitId}`, {}, config);
+        await axios.post(`https://pinggu-backend.fly.dev/mypage/applies?recruitId=${recruitId}`, {}, config);
         
         // 지원 목록 새로고침
-        const appliesResponse = await axios.get('/mypage/applies', config);
+        const appliesResponse = await axios.get('https://pinggu-backend.fly.dev/mypage/applies', config);
         setAppliesData(appliesResponse.data);
         
         alert('지원이 취소되었습니다.');

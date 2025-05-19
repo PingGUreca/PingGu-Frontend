@@ -123,7 +123,7 @@ const ProfileContent = ({ userData, refreshData, onDeleteAccount, getRequestConf
     formData.append('file', file);
     
     try {
-      const response = await axios.post('/mypage/profile-image', formData, {
+      const response = await axios.post('https://pinggu-backend.fly.dev/mypage/profile-image', formData, {
         ...config,
         headers: {
           ...config.headers,
@@ -161,7 +161,7 @@ const ProfileContent = ({ userData, refreshData, onDeleteAccount, getRequestConf
       }
       
       // 프로필 정보 업데이트
-      await axios.put('/mypage/profile', formData, config);
+      await axios.put('https://pinggu-backend.fly.dev/mypage/profile', formData, config);
       
       // 프로필 정보 새로고침
       await refreshData();
