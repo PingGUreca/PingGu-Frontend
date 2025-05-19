@@ -57,7 +57,7 @@ const MyPage = () => {
       const config = getRequestConfig();
       if (!config) return false;
       
-      const response = await axios.get('/mypage', config);
+      const response = await axios.get('https://pinggu-backend.fly.dev/mypage', config);
       setUserData(response.data);
       return true;
     } catch (err) {
@@ -125,7 +125,7 @@ const MyPage = () => {
         const config = getRequestConfig();
         if (!config) return;
         
-        await axios.delete('/mypage', config);
+        await axios.delete('https://pinggu-backend.fly.dev/mypage', config);
         alert('탈퇴가 완료되었습니다.');
         // 로그아웃 처리 및 홈페이지로 리다이렉트
         localStorage.removeItem('access_token');
